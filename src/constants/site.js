@@ -1,7 +1,9 @@
 export const GOOGLE_SCRIPT_URL =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_GOOGLE_SCRIPT_URL) ||
   "https://script.google.com/macros/s/AKfycbzGq1PdZ-ZywqafIlyf6sxbMAPoNKjQOB4EayQ10QVxvMQBqO-rxwFJTbD1j2EnFtFyBQ/exec";
 
 export const REGISTRATION_API_SECRET =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_REGISTRATION_API_SECRET) ||
   "120cc12138f9e2c1795b68487bb577e48d390280a59b73dc44f086d12c63db81";
 
 export const WHATSAPP_CHANNEL_URL =

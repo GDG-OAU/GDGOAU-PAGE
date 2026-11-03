@@ -1,7 +1,11 @@
 import { useMemo, useState } from "react";
 import Header from "./Header";
 import { communities } from "../data/communities";
-import { WHATSAPP_CHANNEL_URL } from "../constants/site";
+import {
+  WHATSAPP_CHANNEL_URL,
+  GOOGLE_SCRIPT_URL,
+  REGISTRATION_API_SECRET,
+} from "../constants/site";
 import {
   ArrowLeft02Icon,
   ArrowRight02Icon,
@@ -44,28 +48,83 @@ export default function RegistrationPage() {
     event.preventDefault();
     setMessage("");
 
-    if (!formData.fullName || !formData.department || !formData.email || !formData.phone || !formData.pictureLink || !formData.birthday || !formData.interest) {
+    if (
+      !formData.fullName ||
+      !formData.department ||
+      !formData.email ||
+      !formData.phone ||
+      !formData.pictureLink ||
+      !formData.birthday ||
+      !formData.interest
+    ) {
       setMessage("Please complete all required fields.");
       return;
     }
 
     setIsSubmitting(true);
 
+    const payload = {
+      ...formData,
+      photoUrl: formData.pictureLink,
+      interest: formData.interest,
+      token: REGISTRATION_API_SECRET,
+    };
+
+    let isSuccess = false;
+    let errorMessage = "";
+
     try {
-      const response = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          photoUrl: formData.pictureLink,
-          interest: formData.interest,
-        }),
-      });
+      // 1. First attempt via /api/register (Cloudflare Worker proxy)
+      try {
+        const response = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
-      const result = await response.json();
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          const result = await response.json();
+          if (result.success) {
+            isSuccess = true;
+          } else if (result.message) {
+            errorMessage = result.message;
+          }
+        }
+      } catch (err) {
+        // Network or local endpoint unavailable, will try direct Google script fallback
+      }
 
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || "Registration could not be completed.");
+      // 2. Fallback directly to Google Apps Script endpoint if needed
+      if (!isSuccess && !errorMessage) {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          const result = await response.json();
+          if (result.success) {
+            isSuccess = true;
+          } else {
+            errorMessage = result.message || "Registration could not be completed.";
+          }
+        } else {
+          const text = await response.text();
+          try {
+            const parsed = JSON.parse(text);
+            if (parsed.success) isSuccess = true;
+            else errorMessage = parsed.message || "Registration failed.";
+          } catch {
+            errorMessage = "Server returned an invalid response. Please try again.";
+          }
+        }
+      }
+
+      if (!isSuccess) {
+        throw new Error(errorMessage || "Registration could not be completed. Please try again.");
       }
 
       setSubmitted(true);
