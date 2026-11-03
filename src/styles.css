@@ -436,7 +436,7 @@ a {
 }
 
 .success-screen {
-  display: none;
+  display: block;
   text-align: center;
   padding: 35px 0;
 }

@@ -1,5 +1,6 @@
 import Header from "./Header";
 import { communities } from "../data/communities";
+import { ArrowRight02Icon, FavouriteIcon } from "hugeicons-react";
 
 export default function CommunitiesPage() {
   return (
@@ -30,7 +31,7 @@ export default function CommunitiesPage() {
                 <h2>{community.name}</h2>
                 <p>{community.description}</p>
                 <a className="join-button" href={`/page?community=${community.id}`}>
-                  Join community <span aria-hidden="true">→</span>
+                  Join community <ArrowRight02Icon size={16} strokeWidth={2} aria-hidden="true" />
                 </a>
               </article>
             );
@@ -39,7 +40,7 @@ export default function CommunitiesPage() {
 
         <footer className="page-footer">
           <p>
-            Built with <span className="red">♥</span> by GDG OAU · <a href="/">Back to home</a>
+            Built with <FavouriteIcon size={14} color="#EA4335" style={{ display: "inline-block", verticalAlign: "-2px", margin: "0 2px" }} aria-label="love" /> by GDG OAU · <a href="/">Back to home</a>
           </p>
         </footer>
       </main>

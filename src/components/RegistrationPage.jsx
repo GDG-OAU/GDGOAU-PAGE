@@ -2,6 +2,11 @@ import { useMemo, useState } from "react";
 import Header from "./Header";
 import { communities } from "../data/communities";
 import { WHATSAPP_CHANNEL_URL } from "../constants/site";
+import {
+  ArrowLeft02Icon,
+  ArrowRight02Icon,
+  CheckmarkCircle02Icon,
+} from "hugeicons-react";
 
 export default function RegistrationPage() {
   const initialCommunity =
@@ -77,7 +82,10 @@ export default function RegistrationPage() {
     <>
       <Header />
       <main className="registration-container">
-        <a href="/communities" className="back-link">← Back to communities</a>
+        <a href="/communities" className="back-link">
+          <ArrowLeft02Icon size={16} strokeWidth={2} aria-hidden="true" />
+          <span>Back to communities</span>
+        </a>
 
         {!submitted ? (
           <section>
@@ -146,7 +154,8 @@ export default function RegistrationPage() {
               </div>
 
               <button type="submit" className="submit-button" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Submit registration →"}
+                <span>{isSubmitting ? "Submitting..." : "Submit registration"}</span>
+                {!isSubmitting && <ArrowRight02Icon size={18} strokeWidth={2} aria-hidden="true" />}
               </button>
 
               {message && <div className="form-message error" role="alert">{message}</div>}
@@ -154,19 +163,27 @@ export default function RegistrationPage() {
           </section>
         ) : (
           <section className="success-screen" aria-live="polite">
-            <div className="success-icon">✓</div>
+            <div className="success-icon">
+              <CheckmarkCircle02Icon size={44} strokeWidth={2} />
+            </div>
             <h1>Congratulations!</h1>
             <p>
               Your registration was successful. Welcome to the <span className="success-community">{selectedCommunity.name}</span> community!
             </p>
 
             {selectedCommunity.groupLink ? (
-              <a className="whatsapp-button" href={selectedCommunity.groupLink} target="_blank" rel="noopener noreferrer">Join {selectedCommunity.name} on WhatsApp →</a>
+              <a className="whatsapp-button" href={selectedCommunity.groupLink} target="_blank" rel="noopener noreferrer">
+                <span>Join {selectedCommunity.name} on WhatsApp</span>
+                <ArrowRight02Icon size={18} strokeWidth={2} aria-hidden="true" />
+              </a>
             ) : (
               <div className="no-group-message">Thank you for registering! The WhatsApp group for this community is not available yet.</div>
             )}
 
-            <a href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer" className="channel-secondary-button">Follow GDG OAU WhatsApp Channel →</a>
+            <a href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer" className="channel-secondary-button">
+              <span>Follow GDG OAU WhatsApp Channel</span>
+              <ArrowRight02Icon size={18} strokeWidth={2} aria-hidden="true" />
+            </a>
             <a href="/" className="success-home">Back to GDG OAU homepage</a>
           </section>
         )}
