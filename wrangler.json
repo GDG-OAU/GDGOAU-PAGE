@@ -1,18 +1,28 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "flat-dew-6ced",
-  "compatibility_date": "2024-11-01",
-  "assets": {
-    "directory": "./dist",
-    "not_found_handling": "single-page-application"
-  },
-  "routes": [
-    {
-      "pattern": "gdgoau.com",
-      "custom_domain": true
-    }
-  ],
-  "observability": {
-    "enabled": true
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "flat-dew-6ced",
+	"compatibility_date": "2024-11-01",
+	"assets": {
+		"directory": "./dist",
+		"not_found_handling": "single-page-application"
+	},
+	"routes": [
+		{
+			"pattern": "gdgoau.com",
+			"custom_domain": true,
+			"zone_name": "gdgoau.com",
+			"enabled": true,
+			"previews_enabled": false
+		}
+	],
+	"observability": {
+		"enabled": true,
+		"issues": {
+			"enabled": true
+		}
+	},
+	"vars": {
+		"VITE_GOOGLE_SCRIPT_URL": "https://script.google.com/macros/s/AKfycbzGq1PdZ-ZywqafIlyf6sxbMAPoNKjQOB4EayQ10QVxvMQBqO-rxwFJTbD1j2EnFtFyBQ/exec",
+		"VITE_REGISTRATION_API_SECRET": "120cc12138f9e2c1795b68487bb577e48d390280a59b73dc44f086d12c63db81"
+	}
 }
