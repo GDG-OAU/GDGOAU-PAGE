@@ -74,6 +74,16 @@ npm run preview
 - `npm run build` — build the production bundle
 - `npm run preview` — preview the built app locally
 
+## Deployment
+
+The project is deployed with **Cloudflare Pages**:
+
+- **Framework preset:** Vite
+- **Build command:** `npm run build`
+- **Output directory:** `dist`
+
+Single-page application (SPA) routing is handled automatically via `public/_redirects`.
+
 ## Notes
 
 This project is structured to keep pages and data separated for easier maintenance. The original worker-based logic was refactored into a cleaner React app.
