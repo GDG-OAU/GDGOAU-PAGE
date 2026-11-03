@@ -71,31 +71,54 @@ export default function RegistrationPage() {
     };
 
     try {
-      const response = await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      let isSuccess = false;
+      let errorMessage = "";
 
-      const contentType = response.headers.get("content-type") || "";
-      let result;
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          redirect: "follow",
+          body: JSON.stringify(payload),
+        });
 
-      if (contentType.includes("application/json")) {
-        result = await response.json();
-      } else {
         const text = await response.text();
         try {
-          result = JSON.parse(text);
+          const result = JSON.parse(text);
+          if (result.success) {
+            isSuccess = true;
+          } else {
+            errorMessage = result.message || "Registration could not be completed.";
+          }
         } catch {
-          result = { success: false, message: "Invalid server response. Please try again." };
+          if (response.ok || response.type === "opaque") {
+            isSuccess = true;
+          }
+        }
+      } catch (fetchErr) {
+        // If standard CORS fetch fails, submit via no-cors mode so Google Sheet receives the registration
+        try {
+          await fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload),
+          });
+          isSuccess = true;
+        } catch (fallbackErr) {
+          throw new Error("Network error. Please check your connection and try again.");
         }
       }
 
-      if (!result.success) {
-        throw new Error(result.message || "Registration could not be completed. Please try again.");
+      if (errorMessage) {
+        throw new Error(errorMessage);
       }
 
-      setSubmitted(true);
+      if (isSuccess) {
+        setSubmitted(true);
+      } else {
+        throw new Error("Registration could not be completed. Please try again.");
+      }
     } catch (error) {
       setMessage(error.message || "Something went wrong. Please try again.");
     } finally {
