@@ -70,61 +70,29 @@ export default function RegistrationPage() {
       token: REGISTRATION_API_SECRET,
     };
 
-    let isSuccess = false;
-    let errorMessage = "";
-
     try {
-      // 1. First attempt via /api/register (Cloudflare Worker proxy)
-      try {
-        const response = await fetch("/api/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const result = await response.json();
-          if (result.success) {
-            isSuccess = true;
-          } else if (result.message) {
-            errorMessage = result.message;
-          }
-        }
-      } catch (err) {
-        // Network or local endpoint unavailable, will try direct Google script fallback
-      }
+      const contentType = response.headers.get("content-type") || "";
+      let result;
 
-      // 2. Fallback directly to Google Apps Script endpoint if needed
-      if (!isSuccess && !errorMessage) {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const result = await response.json();
-          if (result.success) {
-            isSuccess = true;
-          } else {
-            errorMessage = result.message || "Registration could not be completed.";
-          }
-        } else {
-          const text = await response.text();
-          try {
-            const parsed = JSON.parse(text);
-            if (parsed.success) isSuccess = true;
-            else errorMessage = parsed.message || "Registration failed.";
-          } catch {
-            errorMessage = "Server returned an invalid response. Please try again.";
-          }
+      if (contentType.includes("application/json")) {
+        result = await response.json();
+      } else {
+        const text = await response.text();
+        try {
+          result = JSON.parse(text);
+        } catch {
+          result = { success: false, message: "Invalid server response. Please try again." };
         }
       }
 
-      if (!isSuccess) {
-        throw new Error(errorMessage || "Registration could not be completed. Please try again.");
+      if (!result.success) {
+        throw new Error(result.message || "Registration could not be completed. Please try again.");
       }
 
       setSubmitted(true);
