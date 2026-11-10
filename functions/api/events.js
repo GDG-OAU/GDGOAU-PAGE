@@ -14,7 +14,7 @@ export async function onRequestGet(context) {
         status: 200,
         headers: {
           "Content-Type": "application/json",
-          "Cache-Control": "public, max-age=60, s-maxage=120",
+          "Cache-Control": "no-store, no-cache, must-revalidate",
         },
       }
     );
@@ -28,6 +28,7 @@ export async function onRequestGet(context) {
         status: 500,
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-store",
         },
       }
     );
