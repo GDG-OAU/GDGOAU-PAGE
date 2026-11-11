@@ -20,7 +20,7 @@ function notionCalendarApiPlugin(env) {
       const events = await fetchCommunityCalendarEvents(env);
       res.statusCode = 200;
       res.setHeader("Content-Type", "application/json");
-      res.setHeader("Cache-Control", "no-store");
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
       res.end(
         JSON.stringify({
           ok: true,
@@ -48,30 +48,6 @@ function notionCalendarApiPlugin(env) {
     },
     configurePreviewServer(server) {
       server.middlewares.use(handleEventsRequest);
-    },
-    async generateBundle() {
-      if (!env.NOTION_API_KEY || !env.NOTION_DATABASE_ID) {
-        return;
-      }
-      try {
-        const events = await fetchCommunityCalendarEvents(env);
-        this.emitFile({
-          type: "asset",
-          fileName: "api/events.json",
-          source: JSON.stringify(
-            {
-              ok: true,
-              source: "notion-build-snapshot",
-              fetchedAt: new Date().toISOString(),
-              events,
-            },
-            null,
-            2
-          ),
-        });
-      } catch (err) {
-        console.warn("[notion-calendar-api] Skipping static snapshot:", err?.message);
-      }
     },
   };
 }

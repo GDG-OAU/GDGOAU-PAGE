@@ -147,18 +147,16 @@ export default function CalendarPage() {
     setLoading(true);
     setError("");
     try {
-      let response = await fetch("/api/events", {
+      const response = await fetch("/api/events", {
         headers: { Accept: "application/json" },
+        cache: "no-store",
       });
 
       const contentType = response.headers.get("content-type") || "";
-      if (!response.ok || !contentType.includes("application/json")) {
-        const snapshotResponse = await fetch("/api/events.json", {
-          headers: { Accept: "application/json" },
-        });
-        if (snapshotResponse.ok) {
-          response = snapshotResponse;
-        }
+      if (!contentType.includes("application/json")) {
+        throw new Error(
+          "Calendar API endpoint (/api/events) did not return JSON. Ensure Cloudflare Pages Functions are deployed."
+        );
       }
 
       const payload = await response.json();

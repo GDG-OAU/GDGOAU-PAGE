@@ -1,14 +1,9 @@
-import notionPkg from "@notionhq/client";
-
-const Client =
-  notionPkg?.Client ||
-  notionPkg?.default?.Client ||
-  (typeof notionPkg === "function" ? notionPkg : null);
-
 const dataSourceCache = new Map();
 
-function normalizeId(rawId = "") {
-  return String(rawId).trim().replace(/-/g, "");
+function normalizeUuid(rawId = "") {
+  const clean = String(rawId).trim().replace(/-/g, "");
+  if (clean.length !== 32) return String(rawId).trim();
+  return `${clean.slice(0, 8)}-${clean.slice(8, 12)}-${clean.slice(12, 16)}-${clean.slice(16, 20)}-${clean.slice(20)}`;
 }
 
 function extractPlainText(richTextArray = []) {
@@ -107,13 +102,29 @@ export function mapNotionPageToEvent(page) {
   };
 }
 
-async function resolveDataSourceId(notion, databaseId) {
-  const key = normalizeId(databaseId);
+async function resolveDataSourceId(apiKey, databaseId) {
+  const key = databaseId.replace(/-/g, "");
   if (dataSourceCache.has(key)) {
     return dataSourceCache.get(key);
   }
 
-  const db = await notion.databases.retrieve({ database_id: databaseId });
+  const response = await fetch(
+    `https://api.notion.com/v1/databases/${normalizeUuid(databaseId)}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Notion-Version": "2025-09-03",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Notion database lookup failed (${response.status}): ${errText}`);
+  }
+
+  const db = await response.json();
   const dataSourceId = db?.data_sources?.[0]?.id;
   if (!dataSourceId) {
     throw new Error(
@@ -126,21 +137,22 @@ async function resolveDataSourceId(notion, databaseId) {
 }
 
 export async function fetchCommunityCalendarEvents(env = {}) {
-  const apiKey =
+  const rawApiKey =
     env.NOTION_API_KEY ||
     (typeof process !== "undefined" ? process.env?.NOTION_API_KEY : undefined);
-  const databaseId =
+  const rawDatabaseId =
     env.NOTION_DATABASE_ID ||
     (typeof process !== "undefined" ? process.env?.NOTION_DATABASE_ID : undefined);
 
-  if (!apiKey) {
+  if (!rawApiKey) {
     throw new Error("Missing NOTION_API_KEY environment variable.");
   }
-  if (!databaseId) {
+  if (!rawDatabaseId) {
     throw new Error("Missing NOTION_DATABASE_ID environment variable.");
   }
 
-  const notion = new Client({ auth: apiKey });
+  const apiKey = String(rawApiKey).trim();
+  const databaseId = normalizeUuid(rawDatabaseId);
 
   const sorts = [
     {
@@ -149,37 +161,43 @@ export async function fetchCommunityCalendarEvents(env = {}) {
     },
   ];
 
-  let pages = [];
+  const dataSourceId = await resolveDataSourceId(apiKey, databaseId);
+
+  const pages = [];
   let hasMore = true;
   let startCursor = undefined;
 
-  if (notion.dataSources?.query) {
-    const dataSourceId = await resolveDataSourceId(notion, databaseId);
-    while (hasMore) {
-      const response = await notion.dataSources.query({
-        data_source_id: dataSourceId,
-        sorts,
-        start_cursor: startCursor,
-        page_size: 100,
-      });
-      pages.push(...(response.results || []));
-      hasMore = Boolean(response.has_more);
-      startCursor = response.next_cursor || undefined;
+  while (hasMore) {
+    const bodyPayload = {
+      sorts,
+      page_size: 100,
+    };
+    if (startCursor) {
+      bodyPayload.start_cursor = startCursor;
     }
-  } else if (notion.databases?.query) {
-    while (hasMore) {
-      const response = await notion.databases.query({
-        database_id: databaseId,
-        sorts,
-        start_cursor: startCursor,
-        page_size: 100,
-      });
-      pages.push(...(response.results || []));
-      hasMore = Boolean(response.has_more);
-      startCursor = response.next_cursor || undefined;
+
+    const response = await fetch(
+      `https://api.notion.com/v1/data_sources/${dataSourceId}/query`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Notion-Version": "2025-09-03",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bodyPayload),
+      }
+    );
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Notion query failed (${response.status}): ${errText}`);
     }
-  } else {
-    throw new Error("Unsupported @notionhq/client version: no query method found.");
+
+    const data = await response.json();
+    pages.push(...(data.results || []));
+    hasMore = Boolean(data.has_more);
+    startCursor = data.next_cursor || undefined;
   }
 
   const events = pages
