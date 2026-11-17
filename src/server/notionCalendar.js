@@ -80,7 +80,12 @@ export function mapNotionPageToEvent(page) {
 
   const files = extractFiles(props["Files & media"]?.files);
   const coverUrl = extractCoverUrl(page);
-  const flyerUrl = files[0]?.url || coverUrl || null;
+  const originalFlyerUrl = files[0]?.url || coverUrl || null;
+  // Notion's file links are signed and change on every request, so the browser could never cache them.
+  // Point at our own stable URL instead; it only changes when the page is edited.
+  const flyerUrl = originalFlyerUrl
+    ? `/api/flyer?id=${encodeURIComponent(page.id)}&v=${encodeURIComponent(page.last_edited_time || "")}`
+    : null;
 
   return {
     id: page.id,
@@ -218,4 +223,29 @@ export async function fetchCommunityCalendarEvents(env = {}) {
   });
 
   return events;
+}
+
+const PAGE_ID = /^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i;
+
+/* Fetches the flyer image for one event page. Returns the upstream image response, or null if there is none. */
+export async function fetchFlyerImage(env = {}, pageId = "") {
+  if (!PAGE_ID.test(pageId)) return null;
+  const rawApiKey =
+    env.NOTION_API_KEY || (typeof process !== "undefined" ? process.env?.NOTION_API_KEY : undefined);
+  if (!rawApiKey) throw new Error("Missing NOTION_API_KEY environment variable.");
+
+  const pageResponse = await fetch(`https://api.notion.com/v1/pages/${normalizeUuid(pageId)}`, {
+    headers: { Authorization: `Bearer ${String(rawApiKey).trim()}`, "Notion-Version": "2025-09-03" },
+  });
+  if (!pageResponse.ok) return null;
+
+  const page = await pageResponse.json();
+  const files = extractFiles(page?.properties?.["Files & media"]?.files);
+  const source = files[0]?.url || extractCoverUrl(page);
+  if (!source) return null;
+
+  const image = await fetch(source);
+  const type = image.headers.get("content-type") || "";
+  if (!image.ok || !type.startsWith("image/")) return null;
+  return image;
 }

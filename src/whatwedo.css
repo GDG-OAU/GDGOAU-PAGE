@@ -1,0 +1,135 @@
+/* ---------- What we do ---------- */
+.wwd {
+  background: #c3ecf6;
+  color: var(--ink);
+  font-family: var(--brand-font);
+}
+
+.wwd-inner {
+  max-width: 1640px;
+  margin: 0 auto;
+  padding: clamp(96px, 12vw, 220px) clamp(24px, 4vw, 72px);
+}
+
+.wwd-head {
+  position: relative;
+  max-width: 980px;
+}
+
+.wwd-eyebrow {
+  display: inline-block;
+  margin: 0 0 clamp(18px, 2vw, 32px);
+  padding: 8px 18px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: #57caff;
+  font-family: "Google Sans Mono", "Roboto Mono", ui-monospace, monospace;
+  font-size: clamp(13px, 1vw, 16px);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.wwd-head h2 {
+  margin: 0;
+  font-size: clamp(40px, 6vw, 104px);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+.wwd-lead {
+  max-width: 600px;
+  margin: clamp(20px, 2.4vw, 40px) 0 0;
+  font-size: clamp(16px, 1.45vw, 24px);
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.wwd-asterisk {
+  position: absolute;
+  top: 4%;
+  right: 4%;
+  width: clamp(36px, 5vw, 84px);
+  height: auto;
+}
+
+.wwd-grid {
+  list-style: none;
+  margin: clamp(64px, 8vw, 150px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(16px, 1.8vw, 32px);
+}
+
+.wwd-card {
+  position: relative;
+  aspect-ratio: 400 / 600;
+  min-width: 0;
+}
+
+.wwd-card-shape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.wwd-num {
+  position: absolute;
+  left: 8%;
+  top: 5%;
+  font-family: "Google Sans Mono", "Roboto Mono", ui-monospace, monospace;
+  font-size: clamp(14px, 1.1vw, 18px);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.wwd-icon {
+  position: absolute;
+  top: 1.5%;
+  right: 1.5%;
+  width: 31%;
+  height: 21%;
+  object-fit: contain;
+}
+
+.wwd-icon.flip { transform: scaleX(-1); }
+
+.wwd-body {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 40%;
+  bottom: 7%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.wwd-body h3 {
+  margin: 0 0 clamp(8px, 0.9vw, 16px);
+  font-size: clamp(32px, 3vw, 54px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.wwd-body p {
+  margin: 0;
+  font-size: clamp(15px, 1.25vw, 21px);
+  line-height: 1.55;
+  font-weight: 500;
+}
+
+@media (max-width: 1100px) {
+  .wwd-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  .wwd-grid { grid-template-columns: 1fr; }
+  .wwd-card { max-width: 440px; }
+  .wwd-body p { font-size: 17px; }
+}

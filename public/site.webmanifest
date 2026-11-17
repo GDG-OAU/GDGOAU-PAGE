@@ -1,0 +1,13 @@
+{
+  "name": "Google Developer Group on Campus OAU",
+  "short_name": "GDG OAU",
+  "description": "Students at Obafemi Awolowo University learning, building and shipping together.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffe7a5",
+  "theme_color": "#ffe7a5",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -1,10 +1,44 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
-import { fetchCommunityCalendarEvents } from "./src/server/notionCalendar.js";
+import { fetchCommunityCalendarEvents, fetchFlyerImage } from "./src/server/notionCalendar.js";
+import { handleRegistration } from "./functions/api/register.js";
 
 function notionCalendarApiPlugin(env) {
   const handleEventsRequest = async (req, res, next) => {
     const url = req.url ? req.url.split("?")[0] : "";
+    if (url === "/api/register") {
+      const chunks = [];
+      for await (const chunk of req) chunks.push(chunk);
+      const request = new Request("http://localhost/api/register", {
+        method: req.method,
+        headers: { "Content-Type": "text/plain" },
+        body: req.method === "POST" ? Buffer.concat(chunks) : undefined,
+      });
+      const response = await handleRegistration(request, env);
+      res.statusCode = response.status;
+      res.setHeader("Content-Type", "application/json");
+      res.end(await response.text());
+      return;
+    }
+    if (url === "/api/flyer") {
+      try {
+        const id = new URL(req.url, "http://localhost").searchParams.get("id") || "";
+        const image = await fetchFlyerImage(env, id);
+        if (!image) {
+          res.statusCode = 404;
+          res.end("Not found");
+          return;
+        }
+        res.statusCode = 200;
+        res.setHeader("Content-Type", image.headers.get("content-type"));
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        res.end(Buffer.from(await image.arrayBuffer()));
+      } catch {
+        res.statusCode = 502;
+        res.end("Flyer unavailable");
+      }
+      return;
+    }
     if (url !== "/api/events") {
       return next();
     }

@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
+import "../pages.css";
 import Header from "./Header";
+import { loadEvents as loadCachedEvents } from "../lib/eventsCache";
+import Dropdown from "./Dropdown";
+import arches from "../assets/figma/arches.svg";
+import star from "../assets/figma/star.svg";
+import arrowPaper from "../assets/figma/arrow-paper.svg";
 import {
   NOTION_CALENDAR_PUBLIC_URL,
   WHATSAPP_CHANNEL_URL,
@@ -10,11 +16,12 @@ import {
   ArrowUpRight01Icon,
   Calendar03Icon,
   Clock01Icon,
-  FavouriteIcon,
   Location01Icon,
   Search01Icon,
   UserCircleIcon,
 } from "hugeicons-react";
+
+const TINTS = ["#ffe7a5", "#ccf6c5", "#c3ecf6", "#f8d8d8"];
 
 const STATUS_META = {
   Upcoming: {
@@ -146,46 +153,23 @@ export default function CalendarPage() {
   const loadEvents = async () => {
     setLoading(true);
     setError("");
-    try {
-      const response = await fetch("/api/events", {
-        headers: { Accept: "application/json" },
-        cache: "no-store",
-      });
-
-      const contentType = response.headers.get("content-type") || "";
-      if (!contentType.includes("application/json")) {
-        throw new Error(
-          "Calendar API endpoint (/api/events) did not return JSON. Ensure Cloudflare Pages Functions are deployed."
-        );
-      }
-
-      const payload = await response.json();
-      if (!response.ok || !payload?.ok) {
-        throw new Error(payload?.error || "Unable to load events from Notion.");
-      }
-
-      const loadedEvents = (payload.events || [])
-        .filter(
-          (item) =>
-            Boolean(item?.title) &&
-            String(item?.status || "").toLowerCase() !== "draft"
-        )
-        .sort((a, b) => {
-          const aStart = a.date?.start
-            ? new Date(a.date.start).getTime()
-            : Number.POSITIVE_INFINITY;
-          const bStart = b.date?.start
-            ? new Date(b.date.start).getTime()
-            : Number.POSITIVE_INFINITY;
-          return aStart - bStart;
+    const prepare = (list) =>
+      list
+        .filter((item) => Boolean(item?.title) && String(item?.status || "").toLowerCase() !== "draft")
+        .sort((x, y) => {
+          const xs = x.date?.start ? new Date(x.date.start).getTime() : Number.POSITIVE_INFINITY;
+          const ys = y.date?.start ? new Date(y.date.start).getTime() : Number.POSITIVE_INFINITY;
+          return xs - ys;
         });
-
-      setEvents(loadedEvents);
+    let shown = false;
+    try {
+      await loadCachedEvents((list) => {
+        shown = true;
+        setEvents(prepare(list));
+        setLoading(false);
+      });
     } catch (err) {
-      setError(
-        err?.message ||
-          "Could not load community events from Notion right now."
-      );
+      if (!shown) setError(err?.message || "Could not load community events from Notion right now.");
     } finally {
       setLoading(false);
     }
@@ -257,309 +241,178 @@ export default function CalendarPage() {
     });
   }, [events, statusFilter, selectedTeam, searchQuery]);
 
+  const tabs = [
+    { key: "upcoming", label: "Upcoming", count: counts.upcoming },
+    { key: "completed", label: "Completed", count: counts.completed },
+    { key: "all", label: "All events", count: counts.all },
+  ];
+
   return (
     <>
       <Header activePage="calendar" />
-      <main className="page-container">
-        <section className="hero">
-          <div className="eyebrow">
-            <span className="green">●</span>
-            GDG OAU 27’ SCHEDULE
-          </div>
-          <h1>
-            Events <span>Calendar.</span>
-          </h1>
-          <p>
-            Keep track of workshops, hackathons, study jams, and community
-            sessions synced directly from the GDG on Campus OAU Notion calendar.
-          </p>
-          <div className="actions" style={{ marginTop: "24px" }}>
-            <a
-              className="button whatsapp-channel-button"
-              href={WHATSAPP_CHANNEL_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Follow WhatsApp Channel
-            </a>
-            <a
-              className="button x-button"
-              href={NOTION_CALENDAR_PUBLIC_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-            >
-              View Notion Board{" "}
-              <ArrowUpRight01Icon size={16} strokeWidth={2} aria-hidden="true" />
-            </a>
-          </div>
-        </section>
-
-        <section className="calendar-controls" aria-label="Filter events">
-          <div className="calendar-tabs" role="tablist" aria-label="Event status filter">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={statusFilter === "upcoming"}
-              className={`calendar-tab ${statusFilter === "upcoming" ? "active" : ""}`}
-              onClick={() => setStatusFilter("upcoming")}
-            >
-              Upcoming <span className="tab-badge">{counts.upcoming}</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={statusFilter === "completed"}
-              className={`calendar-tab ${statusFilter === "completed" ? "active" : ""}`}
-              onClick={() => setStatusFilter("completed")}
-            >
-              Completed <span className="tab-badge">{counts.completed}</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={statusFilter === "all"}
-              className={`calendar-tab ${statusFilter === "all" ? "active" : ""}`}
-              onClick={() => setStatusFilter("all")}
-            >
-              All Events <span className="tab-badge">{counts.all}</span>
-            </button>
-          </div>
-
-          <div className="calendar-filters-right">
-            <div className="calendar-search-wrapper">
-              <Search01Icon
-                size={16}
-                strokeWidth={2}
-                className="calendar-search-icon"
-                aria-hidden="true"
-              />
-              <input
-                type="search"
-                className="calendar-search-input"
-                placeholder="Search title, team, host, or venue..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                aria-label="Search events"
-              />
-            </div>
-
-            <select
-              className="calendar-team-select"
-              value={selectedTeam}
-              onChange={(e) => setSelectedTeam(e.target.value)}
-              aria-label="Filter by team"
-            >
-              <option value="all">All Teams & Communities</option>
-              {availableTeams.map((teamName) => (
-                <option key={teamName} value={teamName}>
-                  {teamName}
-                </option>
-              ))}
-            </select>
-          </div>
-        </section>
-
-        {loading && (
-          <section className="events-grid" aria-busy="true" aria-label="Loading events">
-            {[1, 2, 3].map((item) => (
-              <div className="event-card event-card-skeleton" key={item}>
-                <div className="skeleton-banner" />
-                <div className="skeleton-body">
-                  <div className="skeleton-line title" />
-                  <div className="skeleton-line short" />
-                  <div className="skeleton-line" />
-                </div>
-              </div>
-            ))}
-          </section>
-        )}
-
-        {!loading && error && (
-          <section className="calendar-state-card error" role="alert">
-            <AlertCircleIcon size={28} strokeWidth={1.8} color="#EA4335" />
-            <h2>Unable to fetch live calendar events</h2>
-            <p>{error}</p>
-            <div className="calendar-state-actions">
-              <button
-                type="button"
-                className="button community"
-                onClick={loadEvents}
-              >
-                Try Again
-              </button>
-              <a
-                className="button x-button"
-                href={NOTION_CALENDAR_PUBLIC_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Open Public Notion Calendar
+      <main className="pg">
+        <section className="pg-hero" aria-labelledby="cal-title">
+          <div className="pg-hero-inner">
+            <p className="pg-eyebrow">GDG OAU 27’ schedule</p>
+            <h1 id="cal-title" className="pg-title">
+              <img className="pg-arches" src={arches} alt="" />
+              <span>Events calendar.</span>
+            </h1>
+            <p className="pg-lead">
+              Workshops, hackathons, study jams and community sessions, synced live from the GDG on Campus OAU Notion calendar.
+            </p>
+            <div className="cal-actions">
+              <a className="cal-btn cal-btn-dark" href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer">
+                Follow WhatsApp channel
+              </a>
+              <a className="cal-btn cal-btn-yellow" href={NOTION_CALENDAR_PUBLIC_URL} target="_blank" rel="noopener noreferrer">
+                View Notion board <ArrowUpRight01Icon size={18} strokeWidth={2.2} aria-hidden="true" />
               </a>
             </div>
-          </section>
-        )}
+            <img className="pg-star" src={star} alt="" />
+          </div>
+        </section>
 
-        {!loading && !error && filteredEvents.length === 0 && (
-          <section className="calendar-state-card">
-            <Calendar03Icon size={32} strokeWidth={1.8} color="#4285F4" />
-            <h2>No {statusFilter !== "all" ? statusFilter : "matching"} events found</h2>
-            <p>
-              {statusFilter === "upcoming"
-                ? "There are no events marked as Upcoming right now. You can browse Completed or All Events."
-                : "No events match your current filters. Try switching tabs or clearing your search."}
-            </p>
-            {events.length > 0 && (
-              <div className="calendar-state-actions">
-                {statusFilter !== "all" && (
-                  <button
-                    type="button"
-                    className="button community"
-                    onClick={() => setStatusFilter("all")}
-                  >
-                    View All Events ({counts.all})
-                  </button>
-                )}
-                {(selectedTeam !== "all" || searchQuery) && (
-                  <button
-                    type="button"
-                    className="button x-button"
-                    onClick={() => {
-                      setSelectedTeam("all");
-                      setSearchQuery("");
-                    }}
-                  >
-                    Reset Filters
-                  </button>
-                )}
-              </div>
-            )}
-          </section>
-        )}
-
-        {!loading && !error && filteredEvents.length > 0 && (
-          <section className="events-grid" aria-label="Community events">
-            {filteredEvents.map((event) => {
-              const isCancelled = event.status === "Cancelled";
-              const statusMeta = STATUS_META[event.status] || {
-                label: event.status || "Planning",
-                className: "status-planning",
-              };
-              const actionUrl = resolveActionUrl(event);
-              const shortDesc = getShortDescription(event.description, 168);
-
-              return (
-                <article
-                  key={event.id}
-                  className={`event-card ${isCancelled ? "is-cancelled" : ""}`}
+        <section className="cal-wrap">
+          <div className="cal-controls" aria-label="Filter events">
+            <div className="cal-tabs" role="tablist" aria-label="Event status filter">
+              {tabs.map((t) => (
+                <button
+                  key={t.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={statusFilter === t.key}
+                  className={`cal-tab${statusFilter === t.key ? " is-active" : ""}`}
+                  onClick={() => setStatusFilter(t.key)}
                 >
-                  <div className="event-card-media">
-                    {event.flyerUrl ? (
-                      <img
-                        src={event.flyerUrl}
-                        alt={`${event.title} flyer`}
-                        className="event-flyer-image"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="event-flyer-placeholder">
-                        <Calendar03Icon size={32} strokeWidth={1.6} color="#4285F4" />
-                        <span>GDG on Campus OAU</span>
-                      </div>
-                    )}
+                  {t.label} <span>{t.count}</span>
+                </button>
+              ))}
+            </div>
 
-                    <div className="event-badges-overlay">
-                      <span className={`event-status-badge ${statusMeta.className}`}>
-                        {statusMeta.label}
-                      </span>
-                    </div>
-                  </div>
+            <div className="cal-filters">
+              <div className="cal-search">
+                <Search01Icon size={18} strokeWidth={2} aria-hidden="true" />
+                <input
+                  type="search"
+                  placeholder="Search title, team, host or venue"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Search events"
+                />
+              </div>
+              <Dropdown
+                id="team-filter"
+                label="Filter by team"
+                hideLabel
+                value={selectedTeam}
+                onChange={setSelectedTeam}
+                options={[{ value: "all", label: "All teams and communities" }, ...availableTeams.map((n) => ({ value: n, label: n }))]}
+              />
+            </div>
+          </div>
 
-                  <div className="event-card-content">
-                    <h2 className="event-card-title">{event.title}</h2>
+          {loading && (
+            <ul className="cal-grid" aria-busy="true" aria-label="Loading events">
+              {[0, 1, 2].map((i) => <li key={i} className="cal-card cal-skeleton" />)}
+            </ul>
+          )}
 
-                    <ul className="event-meta-list" aria-label="Event details">
-                      <li>
-                        <Clock01Icon size={14} strokeWidth={2} aria-hidden="true" />
-                        <span>{formatEventDate(event.date)}</span>
-                      </li>
-                      {event.venue && (
-                        <li>
-                          <Location01Icon size={14} strokeWidth={2} aria-hidden="true" />
-                          <span>{event.venue}</span>
-                        </li>
+          {!loading && error && (
+            <div className="cal-state" role="alert">
+              <AlertCircleIcon size={32} strokeWidth={1.8} aria-hidden="true" />
+              <h2>Unable to fetch live calendar events</h2>
+              <p>{error}</p>
+              <div className="cal-actions">
+                <button type="button" className="cal-btn cal-btn-dark" onClick={loadEvents}>Try again</button>
+                <a className="cal-btn cal-btn-yellow" href={NOTION_CALENDAR_PUBLIC_URL} target="_blank" rel="noopener noreferrer">Open public Notion calendar</a>
+              </div>
+            </div>
+          )}
+
+          {!loading && !error && filteredEvents.length === 0 && (
+            <div className="cal-state">
+              <Calendar03Icon size={32} strokeWidth={1.8} aria-hidden="true" />
+              <h2>No {statusFilter !== "all" ? statusFilter : "matching"} events found</h2>
+              <p>
+                {statusFilter === "upcoming"
+                  ? "There are no events marked as upcoming right now. You can browse completed or all events."
+                  : "No events match your current filters. Try switching tabs or clearing your search."}
+              </p>
+              {events.length > 0 && (
+                <div className="cal-actions">
+                  {statusFilter !== "all" && (
+                    <button type="button" className="cal-btn cal-btn-dark" onClick={() => setStatusFilter("all")}>
+                      View all events ({counts.all})
+                    </button>
+                  )}
+                  {(selectedTeam !== "all" || searchQuery) && (
+                    <button type="button" className="cal-btn cal-btn-yellow" onClick={() => { setSelectedTeam("all"); setSearchQuery(""); }}>
+                      Reset filters
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {!loading && !error && filteredEvents.length > 0 && (
+            <ul className="cal-grid" aria-label="Community events">
+              {filteredEvents.map((event, i) => {
+                const isCancelled = event.status === "Cancelled";
+                const statusMeta = STATUS_META[event.status] || { label: event.status || "Planning", className: "status-planning" };
+                const actionUrl = resolveActionUrl(event);
+                const shortDesc = getShortDescription(event.description, 168);
+
+                return (
+                  <li key={event.id} className={`cal-card${isCancelled ? " is-cancelled" : ""}`} style={{ "--tint": TINTS[i % 4] }}>
+                    <div className="cal-media">
+                      {event.flyerUrl ? (
+                        <img src={event.flyerUrl} alt={`${event.title} flyer`} loading="lazy" />
+                      ) : (
+                        <span className="cal-media-fallback"><Calendar03Icon size={34} strokeWidth={1.6} aria-hidden="true" />GDG on Campus OAU</span>
                       )}
-                      {event.host && (
-                        <li>
-                          <UserCircleIcon size={14} strokeWidth={2} aria-hidden="true" />
-                          <span>{event.host}</span>
-                        </li>
-                      )}
-                    </ul>
-
-                    {event.teams?.length > 0 && (
-                      <div className="event-teams-row" aria-label="Associated teams">
-                        {event.teams.map((team) => (
-                          <span key={team.id || team.name} className="event-team-chip">
-                            {team.name}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="event-description-outer">
-                      <div className="event-description-wrap">
-                        {isCancelled ? (
-                          <span className="event-inline-cta-float">
-                            <span
-                              className="event-cancelled-pill event-inline-cta"
-                              aria-disabled="true"
-                            >
-                              Cancelled
-                            </span>
-                          </span>
-                        ) : actionUrl ? (
-                          <span className="event-inline-cta-float">
-                            <a
-                              className="join-button event-inline-cta"
-                              href={actionUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Join
-                              <ArrowUpRight01Icon
-                                size={15}
-                                strokeWidth={2.2}
-                                aria-hidden="true"
-                              />
-                            </a>
-                          </span>
-                        ) : null}
-                        <span className="event-description-text">{shortDesc}</span>
-                      </div>
+                      <span className={`cal-status ${statusMeta.className}`}>{statusMeta.label}</span>
                     </div>
-                  </div>
-                </article>
-              );
-            })}
-          </section>
-        )}
 
-        <footer className="page-footer">
-          <p>
-            Built with{" "}
-            <FavouriteIcon
-              size={14}
-              color="#EA4335"
-              style={{
-                display: "inline-block",
-                verticalAlign: "-2px",
-                margin: "0 2px",
-              }}
-              aria-label="love"
-            />{" "}
-            by GDG OAU · <a href="/">Back to home</a>
-          </p>
+                    <div className="cal-body">
+                      <h2>{event.title}</h2>
+                      <ul className="cal-meta" aria-label="Event details">
+                        <li><Clock01Icon size={16} strokeWidth={2} aria-hidden="true" /><span>{formatEventDate(event.date)}</span></li>
+                        {event.venue && <li><Location01Icon size={16} strokeWidth={2} aria-hidden="true" /><span>{event.venue}</span></li>}
+                        {event.host && <li><UserCircleIcon size={16} strokeWidth={2} aria-hidden="true" /><span>{event.host}</span></li>}
+                      </ul>
+
+                      {event.teams?.length > 0 && (
+                        <p className="cal-teams" aria-label="Associated teams">
+                          {event.teams.map((t) => <span key={t.id || t.name}>{t.name}</span>)}
+                        </p>
+                      )}
+
+                      <p className="cal-desc">{shortDesc}</p>
+
+                      {isCancelled ? (
+                        <span className="cal-join cal-join-off" aria-disabled="true">Cancelled</span>
+                      ) : actionUrl ? (
+                        <a className="cal-join" href={actionUrl} target="_blank" rel="noopener noreferrer">
+                          Join <ArrowUpRight01Icon size={17} strokeWidth={2.2} aria-hidden="true" />
+                          <span className="sr-only"> {event.title}</span>
+                        </a>
+                      ) : null}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+
+        <footer className="pg-foot">
+          <div className="pg-foot-inner">
+            <img src={arrowPaper} alt="" />
+            <p>Built by GDG on Campus OAU.</p>
+            <a href="/">Back to home</a>
+          </div>
         </footer>
       </main>
     </>

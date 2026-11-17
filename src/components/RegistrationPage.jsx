@@ -1,16 +1,23 @@
 import { useMemo, useState } from "react";
+import "../pages.css";
 import Header from "./Header";
+import Dropdown from "./Dropdown";
+import DatePicker from "./DatePicker";
+import star from "../assets/figma/star.svg";
+import slashes from "../assets/figma/slashes-outline.svg";
+import globe from "../assets/figma/globe.svg";
 import { communities } from "../data/communities";
-import {
-  WHATSAPP_CHANNEL_URL,
-  GOOGLE_SCRIPT_URL,
-  REGISTRATION_API_SECRET,
-} from "../constants/site";
-import {
-  ArrowLeft02Icon,
-  ArrowRight02Icon,
-  CheckmarkCircle02Icon,
-} from "hugeicons-react";
+import { WHATSAPP_CHANNEL_URL } from "../constants/site";
+import { ArrowLeft02Icon, ArrowRight02Icon, CheckmarkCircle02Icon } from "hugeicons-react";
+
+function Field({ id, label, children }) {
+  return (
+    <div className="rg-field">
+      <label htmlFor={id}>{label}</label>
+      {children}
+    </div>
+  );
+}
 
 export default function RegistrationPage() {
   const initialCommunity =
@@ -63,62 +70,17 @@ export default function RegistrationPage() {
 
     setIsSubmitting(true);
 
-    const payload = {
-      ...formData,
-      photoUrl: formData.pictureLink,
-      interest: formData.interest,
-      token: REGISTRATION_API_SECRET,
-    };
-
     try {
-      let isSuccess = false;
-      let errorMessage = "";
-
-      try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          redirect: "follow",
-          body: JSON.stringify(payload),
-        });
-
-        const text = await response.text();
-        try {
-          const result = JSON.parse(text);
-          if (result.success) {
-            isSuccess = true;
-          } else {
-            errorMessage = result.message || "Registration could not be completed.";
-          }
-        } catch {
-          if (response.ok || response.type === "opaque") {
-            isSuccess = true;
-          }
-        }
-      } catch (fetchErr) {
-        // If standard CORS fetch fails, submit via no-cors mode so Google Sheet receives the registration
-        try {
-          await fetch(GOOGLE_SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(payload),
-          });
-          isSuccess = true;
-        } catch (fallbackErr) {
-          throw new Error("Network error. Please check your connection and try again.");
-        }
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Registration could not be completed. Please try again.");
       }
-
-      if (errorMessage) {
-        throw new Error(errorMessage);
-      }
-
-      if (isSuccess) {
-        setSubmitted(true);
-      } else {
-        throw new Error("Registration could not be completed. Please try again.");
-      }
+      setSubmitted(true);
     } catch (error) {
       setMessage(error.message || "Something went wrong. Please try again.");
     } finally {
@@ -131,112 +93,113 @@ export default function RegistrationPage() {
   return (
     <>
       <Header />
-      <main className="registration-container">
-        <a href="/communities" className="back-link">
-          <ArrowLeft02Icon size={16} strokeWidth={2} aria-hidden="true" />
-          <span>Back to communities</span>
-        </a>
+      <main className="pg rg">
+        <div className="rg-inner">
+          <a href="/communities" className="rg-back">
+            <ArrowLeft02Icon size={18} strokeWidth={2} aria-hidden="true" />
+            <span>Back to communities</span>
+          </a>
 
-        {!submitted ? (
-          <section>
-            <div className="form-heading">
-              <span className="eyebrow">BECOME PART OF GDG OAU</span>
-              <h1>Let&apos;s get to know you.</h1>
-              <p>Tell us a little about yourself and the community you would love to be part of.</p>
-            </div>
+          {!submitted ? (
+            <div className="rg-layout">
+              <aside className="rg-side">
+                <p className="pg-eyebrow">Become part of GDG OAU</p>
+                <h1 className="rg-title">Let&apos;s get to know you.</h1>
+                <p className="pg-lead">Tell us a little about yourself and the community you would love to be part of.</p>
 
-            <div className="selected-community">
-              <div className="selected-icon">
-                <selectedCommunity.icon size={28} strokeWidth={1.8} color="currentColor" />
-              </div>
-              <div>
-                <span className="selected-label">YOUR SELECTED COMMUNITY</span>
-                <div className="selected-name">{selectedCommunity.name}</div>
-              </div>
-            </div>
+                <div className="rg-selected" style={{ "--tint": "#c3ecf6" }}>
+                  <span className="rg-selected-icon"><selectedCommunity.icon size={34} strokeWidth={1.7} aria-hidden="true" /></span>
+                  <div>
+                    <span className="rg-selected-label">Your selected community</span>
+                    <strong>{selectedCommunity.name}</strong>
+                  </div>
+                </div>
 
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label htmlFor="fullName">Full Name</label>
-                <input id="fullName" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Enter your full name" required />
-              </div>
+                <img className="rg-deco rg-deco-star" src={star} alt="" />
+                <img className="rg-deco rg-deco-slashes" src={slashes} alt="" />
+              </aside>
 
-              <div className="form-group">
-                <label htmlFor="department">Department</label>
-                <input id="department" name="department" value={formData.department} onChange={handleChange} placeholder="e.g. Biochemistry" required />
-              </div>
+              <form className="rg-form" onSubmit={handleSubmit} noValidate={false}>
+                <div className="rg-row">
+                  <Field id="fullName" label="Full name">
+                    <input id="fullName" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Enter your full name" required />
+                  </Field>
+                  <Field id="department" label="Department">
+                    <input id="department" name="department" value={formData.department} onChange={handleChange} placeholder="e.g. Biochemistry" required />
+                  </Field>
+                </div>
 
-              <div className="form-group">
-                <label htmlFor="email">Email Address</label>
-                <input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required />
-              </div>
+                <div className="rg-row">
+                  <Field id="email" label="Email address">
+                    <input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required />
+                  </Field>
+                  <Field id="phone" label="Phone number">
+                    <input id="phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} placeholder="+234 801 234 5678" required />
+                  </Field>
+                </div>
 
-              <div className="form-group">
-                <label htmlFor="phone">Phone Number</label>
-                <input id="phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} placeholder="+234 801 234 5678" required />
-              </div>
+                <Field id="pictureLink" label="Google Drive picture link">
+                  <input id="pictureLink" name="pictureLink" value={formData.pictureLink} onChange={handleChange} placeholder="https://drive.google.com/file/d/..." required />
+                </Field>
 
-              <div className="form-group">
-                <label htmlFor="pictureLink">Google Drive Picture Link</label>
-                <input id="pictureLink" name="pictureLink" value={formData.pictureLink} onChange={handleChange} placeholder="https://drive.google.com/file/d/..." required />
-              </div>
-
-              <div className="form-group">
-                <label className="consent-label">
+                <label className="rg-consent">
                   <input type="checkbox" name="birthdayPhotoConsent" checked={formData.birthdayPhotoConsent} onChange={handleChange} />
-                  I agree that GDG OAU may use my picture in community birthday greetings.
+                  <span>I agree that GDG OAU may use my picture in community birthday greetings.</span>
                 </label>
-              </div>
 
-              <div className="form-group">
-                <label htmlFor="birthday">Birthday</label>
-                <input id="birthday" name="birthday" type="date" value={formData.birthday} onChange={handleChange} max={new Date().toISOString().slice(0, 10)} required />
-              </div>
+                <div className="rg-row">
+                  <DatePicker
+                    id="birthday"
+                    label="Birthday"
+                    placeholder="Pick your birthday"
+                    value={formData.birthday}
+                    max={new Date().toISOString().slice(0, 10)}
+                    onChange={(birthday) => setFormData((current) => ({ ...current, birthday }))}
+                  />
+                  <Dropdown
+                    id="interest"
+                    label="Field of interest"
+                    placeholder="Select a community"
+                    value={formData.interest}
+                    onChange={(interest) => setFormData((current) => ({ ...current, interest }))}
+                    options={communities.map((c) => ({ value: c.id, label: c.name, icon: c.icon }))}
+                  />
+                </div>
 
-              <div className="form-group">
-                <label htmlFor="interest">Field of Interest</label>
-                <select id="interest" name="interest" value={formData.interest} onChange={handleChange} required>
-                  <option value="">Select a community</option>
-                  {communities.map((community) => (
-                    <option key={community.id} value={community.id}>{community.name}</option>
-                  ))}
-                </select>
-              </div>
+                <button type="submit" className="rg-submit" disabled={isSubmitting}>
+                  <span>{isSubmitting ? "Submitting..." : "Submit registration"}</span>
+                  {!isSubmitting && <ArrowRight02Icon size={20} strokeWidth={2} aria-hidden="true" />}
+                </button>
 
-              <button type="submit" className="submit-button" disabled={isSubmitting}>
-                <span>{isSubmitting ? "Submitting..." : "Submit registration"}</span>
-                {!isSubmitting && <ArrowRight02Icon size={18} strokeWidth={2} aria-hidden="true" />}
-              </button>
-
-              {message && <div className="form-message error" role="alert">{message}</div>}
-            </form>
-          </section>
-        ) : (
-          <section className="success-screen" aria-live="polite">
-            <div className="success-icon">
-              <CheckmarkCircle02Icon size={44} strokeWidth={2} />
+                {message && <div className="rg-error" role="alert">{message}</div>}
+              </form>
             </div>
-            <h1>Congratulations!</h1>
-            <p>
-              Your registration was successful. Welcome to the <span className="success-community">{selectedCommunity.name}</span> community!
-            </p>
+          ) : (
+            <section className="rg-success" aria-live="polite">
+              <img className="rg-success-globe" src={globe} alt="" />
+              <span className="rg-success-check"><CheckmarkCircle02Icon size={44} strokeWidth={2} aria-hidden="true" /></span>
+              <h1 className="rg-title">Congratulations!</h1>
+              <p className="pg-lead">
+                Your registration was successful. Welcome to the <strong>{selectedCommunity.name}</strong> community!
+              </p>
 
-            {selectedCommunity.groupLink ? (
-              <a className="whatsapp-button" href={selectedCommunity.groupLink} target="_blank" rel="noopener noreferrer">
-                <span>Join {selectedCommunity.name} on WhatsApp</span>
-                <ArrowRight02Icon size={18} strokeWidth={2} aria-hidden="true" />
-              </a>
-            ) : (
-              <div className="no-group-message">Thank you for registering! The WhatsApp group for this community is not available yet.</div>
-            )}
-
-            <a href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer" className="channel-secondary-button">
-              <span>Follow GDG OAU WhatsApp Channel</span>
-              <ArrowRight02Icon size={18} strokeWidth={2} aria-hidden="true" />
-            </a>
-            <a href="/" className="success-home">Back to GDG OAU homepage</a>
-          </section>
-        )}
+              <div className="rg-success-actions">
+                {selectedCommunity.groupLink ? (
+                  <a className="rg-submit" href={selectedCommunity.groupLink} target="_blank" rel="noopener noreferrer">
+                    <span>Join {selectedCommunity.name} on WhatsApp</span>
+                    <ArrowRight02Icon size={20} strokeWidth={2} aria-hidden="true" />
+                  </a>
+                ) : (
+                  <p className="rg-note">Thank you for registering! The WhatsApp group for this community is not available yet.</p>
+                )}
+                <a className="rg-secondary" href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer">
+                  Follow the GDG OAU WhatsApp channel
+                </a>
+                <a className="rg-link" href="/">Back to the GDG OAU homepage</a>
+              </div>
+            </section>
+          )}
+        </div>
       </main>
     </>
   );

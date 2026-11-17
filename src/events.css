@@ -1,0 +1,35 @@
+.ev { background: var(--ink); color: #fff; font-family: var(--brand-font); }
+.ev-inner { max-width: 1640px; margin: 0 auto; padding: clamp(80px, 10vw, 190px) clamp(24px, 4vw, 72px); }
+.ev-head { position: relative; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; }
+.ev-eyebrow {
+  display: inline-block; margin: 0 0 clamp(18px, 2vw, 32px); padding: 8px 18px; border: 2px solid #fff; border-radius: 999px; background: #ffd427; color: var(--ink);
+  font-family: "Google Sans Mono", "Roboto Mono", ui-monospace, monospace; font-size: clamp(13px, 1vw, 16px); font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+}
+.ev-head h2 { margin: 0; max-width: 900px; font-size: clamp(38px, 5.6vw, 100px); font-weight: 800; line-height: 1.02; letter-spacing: -.03em; text-wrap: balance; }
+.ev-star { flex: none; width: clamp(44px, 6vw, 110px); height: auto; filter: invert(1) brightness(1.1); }
+.ev-grid { list-style: none; margin: clamp(40px, 5vw, 90px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 1.8vw, 32px); }
+.ev-card { display: flex; flex-direction: column; background: #fff; color: var(--ink); border: 2px solid #fff; border-radius: 28px; overflow: hidden; }
+.ev-skeleton { min-height: 420px; background: #2c2c2c; border-color: #3a3a3a; animation: ev-pulse 1.4s ease-in-out infinite; }
+@keyframes ev-pulse { 50% { opacity: .55; } }
+.ev-media { position: relative; aspect-ratio: 1 / 1; background: var(--tint); border-bottom: 2px solid var(--ink); }
+.ev-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ev-media-fallback { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 800; font-size: clamp(18px, 1.6vw, 26px); }
+.ev-date { position: absolute; left: 14px; top: 14px; display: grid; place-items: center; min-width: 64px; padding: 8px 12px; background: #ffd427; border: 2px solid var(--ink); border-radius: 16px; font-family: "Google Sans Mono", "Roboto Mono", ui-monospace, monospace; font-size: 12px; font-weight: 600; line-height: 1.1; }
+.ev-date b { font-family: var(--brand-font); font-size: 28px; font-weight: 800; }
+.ev-body { display: flex; flex-direction: column; gap: 10px; flex: 1; padding: clamp(18px, 1.6vw, 28px); }
+.ev-body h3 { margin: 0; font-size: clamp(21px, 1.8vw, 30px); font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+.ev-meta { margin: 0; font-size: clamp(14.5px, 1.05vw, 17px); line-height: 1.5; font-weight: 500; }
+.ev-teams { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+.ev-teams span { padding: 4px 12px; border: 2px solid var(--ink); border-radius: 999px; background: var(--tint); font-size: 13px; font-weight: 600; }
+.ev-more { display: inline-flex; align-items: center; min-height: 44px; margin-top: auto; padding-top: 0; font-weight: 700; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+.ev-note { margin: clamp(32px, 4vw, 64px) 0 0; max-width: 640px; font-size: clamp(17px, 1.5vw, 24px); line-height: 1.6; font-weight: 500; }
+.ev-foot { display: flex; align-items: center; gap: clamp(20px, 3vw, 48px); margin-top: clamp(40px, 4vw, 72px); }
+.ev-foot img { width: clamp(80px, 8vw, 140px); height: auto; transform: scaleX(-1); }
+.ev-button { display: inline-flex; align-items: center; min-height: clamp(52px, 4.4vw, 78px); padding: 0 clamp(30px, 2.8vw, 52px); background: #ffd427; color: var(--ink); border: 2px solid #fff; border-radius: 999px; font-size: clamp(16.5px, 1.4vw, 24px); font-weight: 600; text-decoration: none; }
+.ev-button:hover { background: #ffe7a5; }
+.ev-more:focus-visible, .ev-button:focus-visible { outline: 3px solid #ffd427; outline-offset: 3px; }
+.ev-card .ev-more:focus-visible { outline-color: var(--ink); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 1100px) { .ev-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .ev-grid { grid-template-columns: 1fr; } .ev-foot img { display: none; } .ev-button { width: 100%; justify-content: center; } }
+@media (prefers-reduced-motion: reduce) { .ev-skeleton { animation: none; } }
