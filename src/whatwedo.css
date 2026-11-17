@@ -128,8 +128,47 @@
   .wwd-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
+.wwd-shape-m { display: none; }
+
+/* ---------- phones only: the cards stack as you scroll ---------- */
 @media (max-width: 620px) {
-  .wwd-grid { grid-template-columns: 1fr; }
-  .wwd-card { max-width: 440px; }
-  .wwd-body p { font-size: 17px; }
+  .wwd-body p { font-size: 16.5px; }
+
+  .wwd-grid { display: block; margin-top: 48px; }
+
+  .wwd-card {
+    --peek: 46px;                 /* how much of each card below stays visible */
+    --s: 1;                       /* depth scale, set from JS as cards get covered */
+    position: sticky;
+    top: calc(106px + var(--i, 0) * var(--peek));
+    aspect-ratio: 400 / 500;
+    max-width: none;
+    margin-bottom: 34px;
+    transform: scale(var(--s));
+    transform-origin: 50% 0;
+    will-change: transform;
+  }
+  .wwd-card:last-child { margin-bottom: 0; }
+  .wwd-card:nth-child(1) { --i: 0; --tint: #ffe7a5; }
+  .wwd-card:nth-child(2) { --i: 1; --tint: #ccf6c5; }
+  .wwd-card:nth-child(3) { --i: 2; --tint: #f8d8d8; }
+  .wwd-card:nth-child(4) { --i: 3; --tint: #fff; }
+
+  .wwd-shape-d { display: none; }
+  .wwd-shape-m { display: block; }
+  .wwd-shape-m path { fill: var(--tint); }
+
+  .wwd-card .wwd-card-shape { filter: drop-shadow(0 -6px 14px rgba(30, 30, 30, 0.12)); }
+
+  .wwd-icon { height: 26%; top: 1%; opacity: calc(1 - var(--c, 0)); }
+  .wwd-body { top: 36%; bottom: 8%; }
+  .wwd-body h3 { font-size: 34px; }
+}
+
+@media (max-width: 620px) and (max-height: 700px) {
+  .wwd-card { --peek: 38px; top: calc(100px + var(--i, 0) * var(--peek)); }
+}
+
+@media (max-width: 620px) and (prefers-reduced-motion: reduce) {
+  .wwd-card { transform: none; will-change: auto; }
 }

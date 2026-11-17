@@ -104,7 +104,7 @@ export default function Hero() {
           </p>
 
           <div className="hero-cta">
-            <a className="hero-button" href="/page">Join our community</a>
+            <a className="hero-button" href="/communities">Join our community</a>
             <span className="hero-dots" aria-hidden="true"><i /><i /><i /></span>
           </div>
         </div>

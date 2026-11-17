@@ -15,8 +15,23 @@ body {
   background: #ffffff;
 }
 
-a {
+/* No default blue flash on tap or click; keyboard focus still gets the visible rings set per component. */
+* {
   -webkit-tap-highlight-color: transparent;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+button {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+::selection {
+  background: #ffd427;
+  color: #1e1e1e;
 }
 
 .blue { color: #4285F4; }

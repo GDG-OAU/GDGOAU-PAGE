@@ -82,7 +82,7 @@ export default function Header({ activePage = "home" }) {
               </a>
             ))}
           </nav>
-          <a href="/page" className="nav-cta" onClick={close}>
+          <a href="/communities" className="nav-cta" onClick={close}>
             Join us
           </a>
         </div>

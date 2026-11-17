@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import "../whatwedo.css";
 import { roundedPath } from "../lib/roundedPath";
 import arches from "../assets/figma/arches.svg";
@@ -46,11 +47,21 @@ const CARD_PATH = roundedPath([
   [0, 0, R], [W - NW, 0, R], [W - NW, NH, R], [W, NH, R], [W, H, R], [0, H, R],
 ]);
 
+/* Phone version of the same shape: a little shorter, so a whole card fits above the stack on small screens. */
+const HM = 500;
+const NHM = 128;
+const CARD_PATH_M = roundedPath([
+  [0, 0, R], [W - NW, 0, R], [W - NW, NHM, R], [W, NHM, R], [W, HM, R], [0, HM, R],
+]);
+
 function Card({ card, index }) {
   return (
     <li className="wwd-card">
-      <svg className="wwd-card-shape" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+      <svg className="wwd-card-shape wwd-shape-d" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
         <path d={CARD_PATH} fill="#fff" stroke={INK} strokeWidth="2" vectorEffect="non-scaling-stroke" />
+      </svg>
+      <svg className="wwd-card-shape wwd-shape-m" viewBox={`0 0 ${W} ${HM}`} aria-hidden="true">
+        <path d={CARD_PATH_M} stroke={INK} strokeWidth="2" vectorEffect="non-scaling-stroke" />
       </svg>
       <span className="wwd-num">{String(index + 1).padStart(2, "0")}</span>
       <img className={`wwd-icon${card.flip ? " flip" : ""}`} src={card.icon} alt="" />
@@ -62,7 +73,54 @@ function Card({ card, index }) {
   );
 }
 
+/* Phones only: the cards stack as you scroll (pure CSS sticky). This adds the depth: every card that gets
+   covered shrinks a touch for each card that lands on it. Desktop and tablet never run this. */
+function useStackDepth(listRef) {
+  useEffect(() => {
+    const ul = listRef.current;
+    const phone = window.matchMedia("(max-width: 620px)");
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (!ul) return undefined;
+    let raf = 0;
+
+    const update = () => {
+      raf = 0;
+      const cards = [...ul.children];
+      if (!phone.matches || calm.matches) {
+        cards.forEach((c) => { c.style.removeProperty("--s"); c.style.removeProperty("--c"); });
+        return;
+      }
+      const arrive = cards.map((c, i) => {
+        if (i === 0) return 0;
+        const rect = c.getBoundingClientRect();
+        const stuck = parseFloat(getComputedStyle(c).top) || 0;
+        return Math.min(1, Math.max(0, 1 - (rect.top - stuck) / (rect.height * 0.85)));
+      });
+      cards.forEach((c, i) => {
+        let covered = 0;
+        for (let j = i + 1; j < cards.length; j += 1) covered += arrive[j];
+        c.style.setProperty("--s", (1 - 0.03 * covered).toFixed(4));
+        c.style.setProperty("--c", Math.min(1, covered).toFixed(3));
+      });
+    };
+    const queue = () => { if (!raf) raf = requestAnimationFrame(update); };
+
+    update();
+    window.addEventListener("scroll", queue, { passive: true });
+    window.addEventListener("resize", queue);
+    phone.addEventListener("change", queue);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", queue);
+      window.removeEventListener("resize", queue);
+      phone.removeEventListener("change", queue);
+    };
+  }, [listRef]);
+}
+
 export default function WhatWeDo() {
+  const listRef = useRef(null);
+  useStackDepth(listRef);
   return (
     <section className="wwd" aria-labelledby="wwd-title">
       <div className="wwd-inner">
@@ -79,7 +137,7 @@ export default function WhatWeDo() {
           <img className="wwd-asterisk" src={star} alt="" />
         </header>
 
-        <ul className="wwd-grid">
+        <ul className="wwd-grid" ref={listRef}>
           {CARDS.map((card, i) => (
             <Card key={card.id} card={card} index={i} />
           ))}

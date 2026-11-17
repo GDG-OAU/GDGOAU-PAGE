@@ -10,7 +10,7 @@ const LINKS = [
   { label: "Home", href: "/" },
   { label: "Communities", href: "/communities" },
   { label: "Calendar", href: "/calendar" },
-  { label: "Join us", href: "/page" },
+  { label: "Join us", href: "/communities" },
 ];
 const SOCIALS = [
   { label: "X", href: "https://x.com/GDGOAU" },
@@ -186,7 +186,7 @@ export default function EndReveal() {
           <h2>Come build with us.</h2>
           <p className="end-lead">Pick a community, come to the next session and ship something real with other students.</p>
           <div className="end-actions">
-            <a className="end-btn end-btn-yellow" href="/page">Join our community</a>
+            <a className="end-btn end-btn-yellow" href="/communities">Join our community</a>
             <a className="end-btn end-btn-line" href={WHATSAPP_CHANNEL_URL} target="_blank" rel="noopener noreferrer">Follow the channel</a>
           </div>
         </div>

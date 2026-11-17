@@ -1,5 +1,5 @@
 /* Page lid: everything above the footer, with a curved bottom edge. */
-.home-main { --header-h: 96px; margin-top: -81px; position: relative; z-index: 2; overflow: hidden; border-radius: 0 0 clamp(36px, 6vw, 120px) clamp(36px, 6vw, 120px); }
+.home-main { --header-h: 96px; margin-top: -81px; position: relative; z-index: 2; overflow: clip; border-radius: 0 0 clamp(36px, 6vw, 120px) clamp(36px, 6vw, 120px); }
 @media (max-width: 900px) { .home-main { --header-h: 76px; margin-top: -77px; } }
 .home-main .home-hero { margin-top: 0; }
 .end-spacer { height: var(--end-h); pointer-events: none; }
