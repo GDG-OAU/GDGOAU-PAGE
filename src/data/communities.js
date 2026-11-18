@@ -109,7 +109,7 @@ export const communities = [
     icon: SmartPhone01Icon,
     description:
       "Turn ideas into mobile applications and build experiences for everyday users.",
-    groupLink: "https://chat.whatsapp.com/IPjyvq6rb6PCraIA5W85Cr",
+    groupLink: "https://chat.whatsapp.com/EM2YwyHBjt0AKrDuKPYeeO?mode=gi_t",
   },
   {
     id: "game-development",
