@@ -4,18 +4,59 @@
 .pj-eyebrow { display: inline-block; margin: 0 0 clamp(18px, 2vw, 32px); padding: 8px 18px; border: 2px solid var(--ink); border-radius: 999px; background: #fff; font-family: "Google Sans Mono", "Roboto Mono", ui-monospace, monospace; font-size: clamp(13px, 1vw, 16px); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
 .pj-head h2 { margin: 0; max-width: 960px; font-size: clamp(38px, 5.6vw, 100px); font-weight: 800; line-height: 1.02; letter-spacing: -.03em; text-wrap: balance; }
 .pj-star { flex: none; width: clamp(44px, 6vw, 110px); height: auto; }
+
 .pj-grid { list-style: none; margin: clamp(40px, 5vw, 90px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(16px, 2vw, 36px); }
 .pj-card { display: flex; flex-direction: column; background: #fff; border: 2px solid var(--ink); border-radius: 32px; overflow: hidden; }
-.pj-pic { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 10; border-bottom: 2px solid var(--ink); background: repeating-linear-gradient(135deg, var(--tint) 0 22px, color-mix(in srgb, var(--tint) 70%, #fff) 22px 44px); }
-.pj-pic span { padding: 8px 18px; background: #fff; border: 2px solid var(--ink); border-radius: 999px; font-family: "Google Sans Mono", "Roboto Mono", ui-monospace, monospace; font-size: 14px; font-weight: 600; }
+
+/* Picture area: the striped yellow background stays, the app screens sit on top. */
+.pj-pic { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 10; overflow: hidden; border-bottom: 2px solid var(--ink); background: repeating-linear-gradient(135deg, var(--tint) 0 22px, color-mix(in srgb, var(--tint) 70%, #fff) 22px 44px); }
+.pj-phones { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 6% 4%; }
+.pj-phone { display: block; width: 27%; max-width: 230px; height: auto; aspect-ratio: 9 / 16; object-fit: cover; background: #c4ecf6; border: 2px solid var(--ink); border-radius: clamp(14px, 1.6vw, 26px); box-shadow: 6px 6px 0 var(--ink); }
+.pj-phone--0 { transform: rotate(-7deg) translateY(4%); margin-right: -5%; }
+.pj-phone--1 { position: relative; z-index: 2; width: 31%; max-width: 262px; }
+.pj-phone--2 { transform: rotate(7deg) translateY(4%); margin-left: -5%; }
 .pj-deco { position: absolute; right: 5%; bottom: 8%; width: clamp(40px, 5vw, 80px); height: auto; }
+
 .pj-body { display: flex; flex-direction: column; gap: 14px; padding: clamp(22px, 2.4vw, 42px); }
-.pj-body h3 { margin: 0; font-size: clamp(26px, 2.6vw, 44px); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+.pj-title { display: flex; align-items: center; gap: 16px; }
+.pj-icon { flex: none; width: clamp(52px, 4.4vw, 72px); height: auto; border: 2px solid var(--ink); border-radius: 22%; }
+.pj-body h3 { margin: 0; font-size: clamp(30px, 2.8vw, 48px); font-weight: 800; letter-spacing: -.02em; line-height: 1.05; }
 .pj-body p { margin: 0; font-size: clamp(15.5px, 1.2vw, 20px); line-height: 1.6; font-weight: 500; }
+.pj-body .pj-meta { margin-top: 4px; font-family: "Google Sans Mono", "Roboto Mono", ui-monospace, monospace; font-size: clamp(12px, .9vw, 14px); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #5f6368; }
+.pj-body .pj-lead { font-size: clamp(18px, 1.5vw, 24px); font-weight: 700; line-height: 1.35; }
+
+.pj-points { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.pj-points li { display: inline-flex; align-items: center; gap: 10px; padding: 8px 18px 8px 14px; border: 2px solid var(--ink); border-radius: 999px; background: #fff; font-size: clamp(14px, 1vw, 16px); font-weight: 700; }
+.pj-dot { width: 12px; height: 12px; border-radius: 50%; }
+
 .pj-body .pj-tags { display: flex; flex-wrap: wrap; gap: 8px; }
 .pj-tags span { padding: 5px 14px; border: 2px solid var(--ink); border-radius: 999px; background: var(--tint); font-size: 14px; font-weight: 600; }
-.pj-link { align-self: flex-start; margin-top: 6px; padding: 12px 26px; background: var(--ink); color: #fff; border-radius: 999px; font-weight: 600; text-decoration: none; }
+
+.pj-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+.pj-link { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 12px 26px; background: var(--ink); color: #fff; border: 2px solid var(--ink); border-radius: 999px; font-weight: 600; text-decoration: none; transition: transform .15s ease, box-shadow .15s ease, background .15s ease; -webkit-tap-highlight-color: transparent; }
 .pj-link:hover { background: #3a3a3a; }
-.pj-link:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.pj-link--ghost { background: #fff; color: var(--ink); box-shadow: 0 4px 0 var(--ink); }
+.pj-link--ghost:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 6px 0 var(--ink); }
+.pj-link:focus-visible, .pj-foot a:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.pj-body .pj-foot { font-size: 14px; color: #5f6368; }
+.pj-foot a { color: var(--ink); font-weight: 600; }
+
+/* Featured project: full width, picture beside the text on wide screens. */
+.pj-card--feature { grid-column: 1 / -1; }
+@media (min-width: 1000px) {
+  .pj-card--feature { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); }
+  .pj-card--feature .pj-pic { aspect-ratio: auto; min-height: 100%; border-bottom: 0; border-right: 2px solid var(--ink); }
+  .pj-card--feature .pj-body { justify-content: center; }
+}
+
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (max-width: 900px) { .pj-grid { grid-template-columns: 1fr; } }
+@media (max-width: 600px) {
+  .pj-pic { aspect-ratio: 1 / 1; }
+  .pj-phones { padding: 8% 2%; }
+  .pj-phone { width: 31%; box-shadow: 4px 4px 0 var(--ink); }
+  .pj-phone--1 { width: 36%; }
+  .pj-deco { width: 36px; right: 4%; bottom: 4%; }
+  .pj-actions .pj-link { flex: 1 1 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .pj-link { transition: none; } }

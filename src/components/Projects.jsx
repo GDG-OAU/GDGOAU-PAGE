@@ -1,24 +1,39 @@
+import { Download04Icon, Github01Icon } from "hugeicons-react";
 import "../projects.css";
 import star from "../assets/figma/star.svg";
 import slashes from "../assets/figma/slashes-outline.svg";
+import qruifyIcon from "../assets/projects/qruify-icon.webp";
+import qruifyCreate from "../assets/projects/qruify-create.webp";
+import qruifyCustomize from "../assets/projects/qruify-customize.webp";
+import qruifyShare from "../assets/projects/qruify-share.webp";
 
-/* Placeholder content: swap in the real project names, text, images and links later. */
+const QRUIFY_REPO = "https://github.com/GDGOAU-MOBILE/Qruify";
+
+/* Add the next project to this list; the first one is shown as the featured card. */
 const PROJECTS = [
   {
-    id: "one",
-    name: "Project name",
-    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-    tags: ["Tag one", "Tag two", "Tag three"],
+    id: "qruify",
+    name: "Qruify",
+    icon: qruifyIcon,
+    meta: "v1.0.0 · Android · Flutter",
+    lead: "A private QR code maker and scanner for Android.",
+    text: "Type a link, text or Wi-Fi details and the code builds as you type. Add your own colours and logo, scan codes with the camera, and check guests in from a CSV list. Everything stays on your phone.",
+    points: [
+      { label: "Works offline", color: "var(--gdg-green)" },
+      { label: "No account needed", color: "var(--gdg-blue)" },
+      { label: "Free and open source", color: "var(--gdg-red)" },
+    ],
+    tags: ["Flutter", "Dart", "SQLite", "MIT licence"],
     tint: "#ffe7a5",
-    href: "#",
-  },
-  {
-    id: "two",
-    name: "Project name",
-    text: "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-    tags: ["Tag one", "Tag two", "Tag three"],
-    tint: "#c3ecf6",
-    href: "#",
+    screens: [
+      { src: qruifyCustomize, alt: "Qruify customise screen with code colour, background colour and logo options" },
+      { src: qruifyCreate, alt: "Qruify create screen showing a live QR code preview for a typed link" },
+      { src: qruifyShare, alt: "Qruify result screen with the finished QR code and a share button" },
+    ],
+    primary: { label: "Download APK", href: `${QRUIFY_REPO}/releases/latest/download/qruify-arm64-v8a-release.apk` },
+    repo: QRUIFY_REPO,
+    extra: { label: "Privacy policy", href: "https://ferousco-dev.github.io/qruify-privacy-policy/" },
+    credit: "Built by the GDGOAU Mobile Development community",
   },
 ];
 
@@ -36,16 +51,50 @@ export default function Projects() {
 
         <ul className="pj-grid">
           {PROJECTS.map((p, i) => (
-            <li key={p.id} className="pj-card" style={{ "--tint": p.tint }}>
-              <div className="pj-pic" role="img" aria-label="Project image placeholder">
-                <span>Image placeholder</span>
-                <img className="pj-deco" src={i === 0 ? slashes : star} alt="" />
+            <li key={p.id} className={`pj-card${i === 0 ? " pj-card--feature" : ""}`} style={{ "--tint": p.tint }}>
+              <div className="pj-pic">
+                <div className="pj-phones">
+                  {p.screens.map((s, n) => (
+                    <img key={s.src} className={`pj-phone pj-phone--${n}`} src={s.src} alt={s.alt} loading="lazy" decoding="async" width="540" height="960" />
+                  ))}
+                </div>
+                <img className="pj-deco" src={slashes} alt="" />
               </div>
+
               <div className="pj-body">
-                <h3>{p.name}</h3>
+                <div className="pj-title">
+                  <img className="pj-icon" src={p.icon} alt="" width="64" height="64" />
+                  <div>
+                    <h3>{p.name}</h3>
+                    <p className="pj-meta">{p.meta}</p>
+                  </div>
+                </div>
+
+                <p className="pj-lead">{p.lead}</p>
                 <p>{p.text}</p>
+
+                <ul className="pj-points">
+                  {p.points.map((pt) => (
+                    <li key={pt.label}><span className="pj-dot" style={{ background: pt.color }} aria-hidden="true" />{pt.label}</li>
+                  ))}
+                </ul>
+
                 <p className="pj-tags">{p.tags.map((t) => <span key={t}>{t}</span>)}</p>
-                <a className="pj-link" href={p.href}>View project<span aria-hidden="true"> →</span><span className="sr-only"> {i + 1}</span></a>
+
+                <div className="pj-actions">
+                  <a className="pj-link" href={p.primary.href}>
+                    <Download04Icon size={20} aria-hidden="true" />
+                    {p.primary.label}
+                  </a>
+                  <a className="pj-link pj-link--ghost" href={p.repo} target="_blank" rel="noopener noreferrer">
+                    <Github01Icon size={20} aria-hidden="true" />
+                    View on GitHub
+                  </a>
+                </div>
+
+                <p className="pj-foot">
+                  {p.credit} · <a href={p.extra.href} target="_blank" rel="noopener noreferrer">{p.extra.label}</a>
+                </p>
               </div>
             </li>
           ))}
