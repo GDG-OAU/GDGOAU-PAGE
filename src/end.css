@@ -32,6 +32,10 @@
   margin: 0; font-size: clamp(70px, 19.5vw, 380px); font-weight: 800; letter-spacing: -.05em; line-height: .78; white-space: nowrap; text-align: center; color: #ffe7a5; user-select: none;
   -webkit-mask-image: linear-gradient(to bottom, #000 10%, transparent 92%); mask-image: linear-gradient(to bottom, #000 10%, transparent 92%);
 }
+.end-sites { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 14px 0 0; font-family: "Google Sans Mono", "Roboto Mono", ui-monospace, monospace; font-size: clamp(13px, 1vw, 15px); font-weight: 500; }
+.end-sites a { display: inline-flex; align-items: center; min-height: 32px; color: #fff; text-decoration: none; }
+.end-sites a:hover { color: #ffd427; text-decoration: underline; text-underline-offset: 4px; }
+.end-sites span { color: #5a5a5a; }
 .end-small { margin: 0; padding: 10px 0 18px; text-align: center; font-size: 13px; font-weight: 500; color: #a8a8a8; }
 @media (max-width: 700px) {
   .end, .end-spacer { --end-h: 700px; }

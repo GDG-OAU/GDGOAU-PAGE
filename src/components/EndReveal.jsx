@@ -197,6 +197,11 @@ export default function EndReveal() {
             <ul>{SOCIALS.map((l) => <li key={l.label}><a href={l.href} target="_blank" rel="noopener noreferrer">{l.label}</a></li>)}</ul>
           </nav>
           <p className="end-word" aria-hidden="true">GDG OAU</p>
+          <p className="end-sites">
+            <a href="https://hangout.gdgoau.com/" target="_blank" rel="noopener noreferrer">hangout.gdgoau.com</a>
+            <span aria-hidden="true">|</span>
+            <a href="https://build.gdgoau.com" target="_blank" rel="noopener noreferrer">build.gdgoau.com</a>
+          </p>
           <p className="end-small">Google Developer Group on Campus OAU</p>
         </div>
       </footer>
